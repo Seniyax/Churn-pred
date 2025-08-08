@@ -1,0 +1,14 @@
+artifact_uri: file:///C:/Users/Dell/OneDrive/Desktop/ML/Churn-pred/src/mlruns/992121865606891618/222c4a6b9d43410a96b20c05258c7372/artifacts
+end_time: 1754477125510
+entry_point_name: ''
+experiment_id: '992121865606891618'
+lifecycle_stage: active
+run_id: 222c4a6b9d43410a96b20c05258c7372
+run_name: xgboost_run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1754477123648
+status: 4
+tags: []
+user_id: Dell

@@ -64,7 +64,7 @@ def objective_initialization(model_type, X_train, y_train, X_val, y_val):
         else:
             raise ValueError("Invalid model type")
 
-        # ✅ Pass model object, not string
+        
         cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         auks = []
         for train_idx, val_idx in cv.split(X_train, y_train):
@@ -115,7 +115,6 @@ def train_model(model_type, X_train, y_train, params, X_val, y_val):
     else:
         raise ValueError("Invalid model type")
 
-    # Remove None keys
     model.fit(X_train, y_train, **{k: v for k, v in fit_kwargs.items() if v is not None})
     return model
 
@@ -152,7 +151,7 @@ def save_model(model_type, model, output_dir="../models"):
 def main(data_dir="../data", model_dir="../models", n_trials=10, random_state=42):
     np.random.seed(random_state)
 
-    # Load Data
+  
     X_train, y_train, X_test, y_test = load_processed_data(input_dir=data_dir)
     X_train_sub, X_val, y_train_sub, y_val = train_test_split(
         X_train, y_train, test_size=0.2, random_state=random_state
@@ -167,21 +166,20 @@ def main(data_dir="../data", model_dir="../models", n_trials=10, random_state=42
             mlflow.log_param("random_state", random_state)
             mlflow.log_param("n_trials", n_trials)
 
-            # Tune hyperparameters
+            
             best_params = tune_model(model_type, X_train, y_train, n_trials=n_trials)
             mlflow.log_params(best_params)
 
-            # Add random_state for reproducibility
+           
             best_params['random_state'] = random_state
 
-            # Train final model
+         
             model = train_model(model_type, X_train, y_train, best_params, X_val, y_val)
 
-            # Evaluate
+           
             metrics = evaluate_model(model, X_test, y_test)
             mlflow.log_metrics(metrics)
 
-            # Save
             model_path = save_model(model_type, model, model_dir)
             mlflow.log_artifact(model_path)
 

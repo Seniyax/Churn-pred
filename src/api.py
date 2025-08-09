@@ -18,8 +18,7 @@ from typing import List
 
 
 
-# -----INITIALIZING APP------
-app = FastAPI(title="Customer Churn Prediction API", version="1.0")
+
 
 ASE_DIR = os.path.dirname(os.path.abspath(__file__))
 model_path = os.path.join(ASE_DIR,".." ,"models","lightgbm.pkl")
@@ -59,14 +58,23 @@ async def lifespan(app : FastAPI):
 
 
     #mlflow.set_experiment("Customer Churn Prediction API")
-    sample_data = pd.read_csv("../data/X_train.csv")
-    categorical_features,numerical_features = get_feature_columns(sample_data)
-    preprocessor = preprocessing_pipeline(categorical_features,numerical_features)
-    preprocessor.fit(sample_data)
-    yield
-    pass
+    data_path = os.path.join(ASE_DIR, "..", "data", "X_train.csv")
+    sample_data = pd.read_csv(data_path)
+    preprocessor = None
+    app.state.encoded_columns = sample_data.columns.tolist()
+    print("[INFO] Data already encoded — skipping preprocessor fitting")
 
-app.lifespan = lifespan
+    #categorical_features,numerical_features = get_feature_columns(sample_data)
+    #preprocessor = preprocessing_pipeline(categorical_features,numerical_features)
+    #preprocessor.fit(sample_data)
+    yield
+
+
+app = FastAPI(
+    title="Churn Prediction API",
+    version="1.0",
+    lifespan=lifespan
+)
 
 
 @app.get("/")
@@ -88,9 +96,11 @@ async def predict(data:CustomerData):
 
             input_df = feature_engineering(input_df)
 
-            X = input_df.drop(["customerID","gender","PhoneService"],axis=1)
+            #X = input_df.drop(columns=["customerID","gender","PhoneService"],errors="ignore")
 
-            X_processed = cast(ColumnTransformer, preprocessor).transform(X)
+            #X_processed = cast(ColumnTransformer, preprocessor).transform(X)
+            encoded_cols = app.state.encoded_columns
+            X_processed = input_df.reindex(columns=encoded_cols, fill_value=0)
 
             proba = model.predict_proba(X_processed)[:, 1][0]
             prediction =int (model.predict(X_processed)[0])
@@ -109,8 +119,9 @@ async def predict(data:CustomerData):
 
 
     except Exception as e:
+        if mlflow.active_run():
+            mlflow.log_param("error", str(e))
 
-        mlflow.log_param("error",str(e))
         raise HTTPException(status_code=500, detail=f"prediction error:{str(e)}")
 
 

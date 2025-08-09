@@ -34,7 +34,8 @@ def sample_data():
         "PaperlessBilling": "Yes",
         "PaymentMethod": "Electronic check",
         "MonthlyCharges": 50.0,
-        "TotalCharges": "600.0"
+        "TotalCharges": "600.0",
+        "ChargeTenure": 600.0
 
     }
 
